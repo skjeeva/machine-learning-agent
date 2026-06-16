@@ -1,3 +1,6 @@
+from tools.visualizer import show_gradient_descent
+
+
 def teach():
 
     print("\n===== GRADIENT DESCENT =====\n")
@@ -13,6 +16,8 @@ Eventually you'll reach the lowest point.
 
 That's exactly how Gradient Descent works.
 """)
+
+    show_gradient_descent()
 
     print("\nQuiz:")
     print("Why do we move opposite to the gradient?")
