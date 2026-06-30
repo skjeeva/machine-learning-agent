@@ -1,5 +1,4 @@
 from tools.visualizer import show_gradient_descent_path
-from tools.visualizer import show_gradient_descent
 
 def teach():
 

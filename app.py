@@ -26,3 +26,6 @@ def ask():
             "topic": None,
             "explanation": "Sorry, I don't know that topic yet. Try asking about gradient descent, linear regression, kmeans or decision tree."
         })
+    
+if __name__ == "__main__":
+    app.run(debug=True)

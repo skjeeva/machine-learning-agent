@@ -1,100 +1,101 @@
 function animateGradientDescent() {
   const plot = document.getElementById("plot");
 
-  // --- Data ---
-  const x = [];
-  const y = [];
-  for (let i = -3; i <= 3; i += 0.05) {
-    x.push(i);
-    y.push(i * i); // simple parabola y = x²
+  // --- Build the bowl surface: z = x² + y² ---
+  const range = 3;
+  const resolution = 40;
+  const xs = [];
+  const ys = [];
+  for (let i = 0; i <= resolution; i++) {
+    xs.push(-range + (2 * range * i) / resolution);
+    ys.push(-range + (2 * range * i) / resolution);
   }
 
-  // Gradient descent steps
-  let pos = 2.8;
-  const lr = 0.2;
+  const zSurface = ys.map(yVal =>
+    xs.map(xVal => xVal * xVal + yVal * yVal)
+  );
+
+  const surface = {
+    type: "surface",
+    x: xs,
+    y: ys,
+    z: zSurface,
+    colorscale: "Blues",
+    opacity: 0.75,
+    showscale: false,
+    name: "Loss surface"
+  };
+
+  // --- Gradient descent path on the bowl ---
+  let px = 2.6;
+  let py = 2.2;
+  const lr = 0.15;
   const steps = [];
 
-  for (let i = 0; i < 20; i++) {
-    steps.push({ x: pos, y: pos * pos });
-    const grad = 2 * pos; // derivative of x²
-    pos = pos - lr * grad;
+  for (let i = 0; i < 18; i++) {
+    const pz = px * px + py * py;
+    steps.push({ x: px, y: py, z: pz });
+    const gradX = 2 * px;
+    const gradY = 2 * py;
+    px = px - lr * gradX;
+    py = py - lr * gradY;
   }
-
-  // --- Base curve ---
-  const curve = {
-    x: x,
-    y: y,
-    mode: "lines",
-    line: { color: "steelblue", width: 3 },
-    name: "Loss curve"
-  };
 
   // --- Frames ---
   const frames = steps.map((step, i) => ({
     name: `step${i}`,
     data: [
-      curve,
+      surface,
       {
+        type: "scatter3d",
         x: steps.slice(0, i + 1).map(s => s.x),
         y: steps.slice(0, i + 1).map(s => s.y),
+        z: steps.slice(0, i + 1).map(s => s.z),
         mode: "lines+markers",
-        line: { color: "coral", width: 2, dash: "dot" },
-        marker: { color: "coral", size: 8 },
+        line: { color: "orange", width: 4 },
+        marker: { size: 3, color: "orange" },
         name: "Path"
       },
       {
+        type: "scatter3d",
         x: [step.x],
         y: [step.y],
+        z: [step.z],
         mode: "markers+text",
-        marker: { color: "red", size: 16 },
-        text: [`Step ${i + 1}\nLoss: ${step.y.toFixed(3)}`],
-        textposition: "top right",
-        textfont: { size: 13, color: "red" },
-        name: "Current position"
+        marker: { size: 8, color: "red" },
+        text: [`Step ${i + 1}<br>Loss: ${step.z.toFixed(2)}`],
+        textposition: "top center",
+        name: "Current"
       }
     ]
   }));
 
-  // --- Layout ---
   const layout = {
-    title: "Gradient Descent — ball rolling down the loss curve",
-    xaxis: { title: "Parameter value", range: [-3.5, 3.5] },
-    yaxis: { title: "Loss", range: [-0.5, 9] },
-    plot_bgcolor: "white",
+    title: "Gradient Descent in 3D — ball rolling into the valley",
+    scene: {
+      xaxis: { title: "Parameter 1" },
+      yaxis: { title: "Parameter 2" },
+      zaxis: { title: "Loss" }
+    },
     updatemenus: [{
       type: "buttons",
       buttons: [
-        {
-          label: "▶ Play",
-          method: "animate",
-          args: [null, { frame: { duration: 500 }, fromcurrent: true }]
-        },
-        {
-          label: "⏸ Pause",
-          method: "animate",
-          args: [[null], { mode: "immediate" }]
-        },
-        {
-          label: "↺ Restart",
-          method: "animate",
-          args: [["step0"], { mode: "immediate" }]
-        }
+        { label: "▶ Play", method: "animate", args: [null, { frame: { duration: 500 }, fromcurrent: true }] },
+        { label: "⏸ Pause", method: "animate", args: [[null], { mode: "immediate" }] },
+        { label: "↺ Restart", method: "animate", args: [["step0"], { mode: "immediate" }] }
       ]
     }],
     sliders: [{
       steps: steps.map((_, i) => ({
         method: "animate",
         args: [[`step${i}`], { mode: "immediate" }],
-        label: `Step ${i + 1}`
+        label: `${i + 1}`
       })),
-      currentvalue: {
-        prefix: "Step: ",
-        font: { size: 14 }
-      }
+      currentvalue: { prefix: "Step: " }
     }]
   };
 
-  Plotly.newPlot(plot, [curve], layout).then(() => {
+  Plotly.newPlot(plot, [surface], layout).then(() => {
     Plotly.addFrames(plot, frames);
   });
 }
