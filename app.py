@@ -13,19 +13,10 @@ def index():
 def ask():
     data = request.get_json()
     query = data.get("query", "")
-    topic = detect_topic(query)
-
-    if topic:
-        explanation = agent.explain(topic)
-        return jsonify({
-            "topic": topic,
-            "explanation": explanation
-        })
-    else:
-        return jsonify({
-            "topic": None,
-            "explanation": "Sorry, I don't know that topic yet. Try asking about gradient descent, linear regression, kmeans or decision tree."
-        })
-    
+    result = agent.explain(query)
+    return jsonify({
+        "topic":result["topic"],
+        "explanation":result["explanation"]
+    })
 if __name__ == "__main__":
     app.run(debug=True)
